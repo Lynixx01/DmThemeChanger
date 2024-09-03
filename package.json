@@ -15,6 +15,9 @@
     "dev:wayland": "npm run build && npm run install:extension && npm run wayland-session"
   },
   "devDependencies": {
+    "archiver": "^7.0.1"
+  },
+  "dependencies": {
     "@girs/gjs": "^4.0.0-beta.14",
     "@girs/gnome-shell": "^46.0.2"
   }

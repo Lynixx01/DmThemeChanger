@@ -4,3 +4,4 @@ out/*
 yarn.lock
 out/*
 schemas/*.compiled
+*github.com.zip

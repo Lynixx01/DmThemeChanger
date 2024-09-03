@@ -1,5 +1,6 @@
 import fs from "fs";
 import { builtinModules } from "module";
+import archiver from "archiver";
 
 const JSON_METADATA_PATH = "./metadata.json";
 const LICENSE_PATH = "./LICENSE";
@@ -44,8 +45,32 @@ async function build() {
     OUT_DIR + metadata.uuid + "/metadata.json"
   );
 
-  // sCopy License
+  // Copy License
   fs.copyFileSync(LICENSE_PATH, OUT_DIR + metadata.uuid + "/LICENSE");
+
+  zipFolder(OUT_DIR + metadata.uuid, metadata.uuid + ".zip");
+}
+
+function zipFolder(sourceFolder, outputFilePath) {
+  const output = fs.createWriteStream(outputFilePath);
+  const archive = archiver("zip", {
+    zlib: { level: 9 }, // Sets the compression level.
+  });
+
+  output.on("close", function () {
+    console.log(`${archive.pointer()} total bytes`);
+    console.log("Zip file has been created successfully.");
+  });
+
+  archive.on("error", function (err) {
+    throw err;
+  });
+
+  archive.pipe(output);
+
+  archive.directory(sourceFolder, false);
+
+  archive.finalize();
 }
 
 build();
