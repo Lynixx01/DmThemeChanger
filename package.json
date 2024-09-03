@@ -1,0 +1,21 @@
+{
+  "name": "dark-mode-theme-changer",
+  "version": "1.0.0",
+  "description": "Automatically change gtk3 theme and shell theme when dark mode is active",
+  "repository": "https://github.com/Lynixx01/DmThemeChanger",
+  "author": "Lynixx01",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run clean && npm run build:schema && node build.mjs",
+    "clean": "rm -rf ./out/* && rm -rf ./schemas/*.compiled",
+    "build:schema": "glib-compile-schemas ./schemas",
+    "install:extension": "npm run build && cp -r ./out/* ~/.local/share/gnome-shell/extensions/",
+    "wayland-session": "dbus-run-session -- gnome-shell --nested --wayland",
+    "dev:wayland": "npm run build && npm run install:extension && npm run wayland-session"
+  },
+  "devDependencies": {
+    "@girs/gjs": "^4.0.0-beta.14",
+    "@girs/gnome-shell": "^46.0.2"
+  }
+}
