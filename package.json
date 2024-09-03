@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "build": "npm run clean && npm run build:schema && node build.mjs",
-    "clean": "rm -rf ./out/* && rm -rf ./schemas/*.compiled",
+    "clean": "rm -rf ./out/* && rm -rf ./schemas/*.compiled && rm -rf ./*.com.zip",
     "build:schema": "glib-compile-schemas ./schemas",
     "install:extension": "npm run build && cp -r ./out/* ~/.local/share/gnome-shell/extensions/",
     "wayland-session": "dbus-run-session -- gnome-shell --nested --wayland",

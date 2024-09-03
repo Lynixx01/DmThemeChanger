@@ -17,27 +17,27 @@ async function build() {
   fs.mkdirSync(OUT_DIR + metadata.uuid + "/schemas", { recursive: true });
 
   // SCHEMAS
-  const files = fs.readdirSync(SCHEMAS_DIR_PATH);
-  const schemas = files.find((file) => /\.compiled$/.test(file));
+  const schemas = fs.readdirSync(SCHEMAS_DIR_PATH);
+  const gcompiled = schemas.find((file) => /\.compiled$/.test(file));
 
   // Check if schemas succesfully compiled
-  if (!schemas)
+  if (!gcompiled)
     return console.error(
       "Schemas.compiled not found. Is the schemas successfully compiled?"
     );
 
-  // Move schemas to extension package directory
-  fs.copyFileSync(
-    SCHEMAS_DIR_PATH + schemas,
-    OUT_DIR + metadata.uuid + "/schemas/" + schemas
-  );
+  // Copy schemas to extension package directory
+  for (const file of schemas)
+    fs.copyFileSync(
+      SCHEMAS_DIR_PATH + file,
+      OUT_DIR + metadata.uuid + "/schemas/" + file
+    );
 
-  // Move everthing from src to extension package directory
+  // Copy everthing from src to extension package directory
   const src = fs.readdirSync("./src");
 
-  for (const file of src) {
+  for (const file of src)
     fs.copyFileSync("./src/" + file, OUT_DIR + metadata.uuid + "/" + file);
-  }
 
   // Copy metadata
   fs.copyFileSync(
