@@ -2,6 +2,7 @@ import fs from "fs";
 import { builtinModules } from "module";
 
 const JSON_METADATA_PATH = "./metadata.json";
+const LICENSE_PATH = "./LICENSE";
 const OUT_DIR = "./out/";
 const SCHEMAS_DIR_PATH = "./schemas/";
 
@@ -44,10 +45,7 @@ async function build() {
   );
 
   // sCopy License
-  fs.copyFileSync(
-    JSON_METADATA_PATH,
-    OUT_DIR + metadata.uuid + "/metadata.json"
-  );
+  fs.copyFileSync(LICENSE_PATH, OUT_DIR + metadata.uuid + "/LICENSE");
 }
 
 build();
