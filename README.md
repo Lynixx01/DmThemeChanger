@@ -8,6 +8,8 @@ Automatically change theme styles when dark mode is enabled or disabled.
 
 ## Screenshot
 
+![preferences](https://raw.githubusercontent.com/Lynixx01/DmThemeChanger/master/resources/screenshots/preview.png)
+
 # Installation
 
 Install the `Dark Mode Theme Changer` by running the following commands:
