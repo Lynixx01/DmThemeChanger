@@ -1,7 +1,7 @@
 {
   "name": "dark-mode-theme-changer",
   "version": "1.0.0",
-  "description": "Automatically change gtk3 theme and shell theme when dark mode is active",
+  "description": "Automatically change theme styles when dark mode is enabled or disabled.",
   "repository": "https://github.com/Lynixx01/DmThemeChanger",
   "author": "Lynixx01",
   "license": "GPL-3.0",

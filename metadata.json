@@ -1,6 +1,6 @@
 {
   "name": "Dark mode theme changer",
-  "description": "Automatically change gtk3 theme and shell theme when dark mode is active",
+  "description": "Automatically change theme styles when dark mode is enabled or disabled.",
   "version": 1,
   "uuid": "darkmode-theme-changer@lynixx01.github.com",
   "shell-version": ["46"],
