@@ -87,14 +87,14 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
     });
 
     const shellDropDown = buildDropDown({
-      title: _("Shell theme"),
+      title: _("Shell"),
       items: this._themes.shell,
       selected: this._settings.get_string("shell-theme-dark"),
       bind: [this._settings, "shell-theme-dark"],
     });
 
     const gtk3DropDown = buildDropDown({
-      title: _("Gtk3 theme"),
+      title: _("Legacy Applications"),
       items: this._themes.gtk3,
       selected: this._settings.get_string("gtk3-theme-dark"),
       bind: [this._settings, "gtk3-theme-dark"],
