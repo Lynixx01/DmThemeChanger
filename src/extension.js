@@ -24,30 +24,37 @@ export default class DmThemeChanger extends Extension {
       schema: "org.gnome.desktop.interface",
     });
 
-    this._fetchSettings();
+    const isFirstTimeInstall = this._settings.get_boolean("first-time-install");
+    if (isFirstTimeInstall) this._firstTimeInstall();
+
+    this._fetchAllSettings();
     this._changeAllTheme();
 
     this._connectionIds = [];
     this._connectionIds.push(
       this._interfaceSettings.connect(
         "changed",
-        this._onInterfaceChanged.bind(this)
+        this._onInterfaceSettingsChanged.bind(this)
       )
     );
     this._connectionIds.push(
       this._settings.connect("changed", this._onSettingsChanged.bind(this))
     );
+
+    this._handleExternalShellThemeChanged();
   }
 
   disable() {
+    this._connectionIds.forEach((id) => GLib.source_remove(id));
+    this._connectionIds = null;
+
     this._settings = null;
     this._interfaceSettings = null;
 
-    this._connectionIds.forEach((id) => GLib.source_remove(id));
-    this._connectionIds = null;
+    this._destroyExternalShellThemeHandler();
   }
 
-  //Theme
+  // Theme
   _changeAllTheme() {
     const isDm = this.getDarkMode();
     this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
@@ -89,16 +96,123 @@ export default class DmThemeChanger extends Extension {
     this._interfaceSettings.set_string("gtk-theme", themeName);
   }
 
-  //Settings Interface
-  _onInterfaceChanged(_, key) {
+  // Interface Settings
+  _onInterfaceSettingsChanged(_, key) {
     if (key === "color-scheme") {
       this._changeAllTheme();
     }
+
+    // Handle cases where the user changes the theme from external sources (e.g., GNOME Tweaks).
+    // This prevents the theme from being reverted to the one set by this extension, ensuring external changes are respected.
+    const themeSettings = {
+      "cursor-theme": {
+        light: "cursor-theme-light",
+        dark: "cursor-theme-dark",
+      },
+      "icon-theme": {
+        light: "icon-theme-light",
+        dark: "icon-theme-dark",
+      },
+      "gtk-theme": {
+        light: "gtk3-theme-light",
+        dark: "gtk3-theme-dark",
+      },
+    };
+
+    if (themeSettings[key]) {
+      const isDm = this.getDarkMode();
+      const themeName = this._interfaceSettings.get_value(key).deepUnpack();
+      const settingKey = isDm
+        ? themeSettings[key].dark
+        : themeSettings[key].light;
+
+      this._settings.set_string(settingKey, themeName);
+      this._fetchAllSettings();
+    }
   }
 
-  //Settings
+  // Also handle cases where the user changes the Shell Theme from user-theme extension,
+  // which is also used by GNOME Tweaks.
+  _handleExternalShellThemeChanged() {
+    if (this._isUserThemeEnabled()) this._addUserThemeListener();
+
+    // Add another listener to remove User Theme listener when user disable User Theme Extension.
+    const ids = Main.extensionManager.connect(
+      "extension-state-changed",
+      this._onExtensionStateChanged.bind(this)
+    );
+
+    this._connectionIds.push(ids);
+  }
+
+  _destroyExternalShellThemeHandler() {
+    this._removeUserThemeListener();
+    if (this._userThemeSettings) this._userThemeSettings = null;
+  }
+
+  _onExtensionStateChanged(_, extension) {
+    if (!extension.uuid.includes("user-theme@")) return;
+
+    if (extension.state !== 1) {
+      this._removeUserThemeListener();
+    }
+
+    if (extension.state === 1) {
+      this._addUserThemeListener();
+    }
+  }
+
+  _isUserThemeEnabled() {
+    const uuid = Main.extensionManager
+      .getUuids()
+      .find((ext) => ext.includes("user-theme@"));
+
+    if (!uuid) return false;
+
+    const state = Main.extensionManager.lookup(uuid).state;
+
+    return state === 1;
+  }
+
+  getUserThemeSettings() {
+    if (!this._userThemeSettings)
+      this._userThemeSettings = new Gio.Settings({
+        schema: "org.gnome.shell.extensions.user-theme",
+      });
+
+    return this._userThemeSettings;
+  }
+
+  _addUserThemeListener() {
+    if (!this._userThemeListenerId)
+      this._userThemeListenerId = this.getUserThemeSettings().connect(
+        "changed",
+        this._onUserThemeChanged.bind(this)
+      );
+  }
+
+  _removeUserThemeListener() {
+    if (!this._userThemeListenerId) return;
+    GLib.source_remove(this._userThemeListenerId);
+    this._userThemeListenerId = null;
+  }
+
+  _onUserThemeChanged(_, key) {
+    const isDm = this.getDarkMode();
+
+    const themeName = this.getUserThemeSettings().get_value(key).deepUnpack();
+
+    this._settings.set_string(
+      isDm ? "shell-theme-dark" : "shell-theme-light",
+      themeName === "" ? "Adwaita" : themeName
+    );
+
+    this._fetchAllSettings();
+  }
+
+  // Extension Settings
   _onSettingsChanged(_, key) {
-    this._fetchSettings();
+    this._fetchAllSettings();
     const isDm = this.getDarkMode();
 
     if (key.startsWith("cursor")) {
@@ -118,7 +232,41 @@ export default class DmThemeChanger extends Extension {
     }
   }
 
-  _fetchSettings() {
+  _firstTimeInstall() {
+    const isDm = this.getDarkMode();
+
+    const themeSettings = {
+      "cursor-theme": {
+        light: "cursor-theme-light",
+        dark: "cursor-theme-dark",
+      },
+      "icon-theme": {
+        light: "icon-theme-light",
+        dark: "icon-theme-dark",
+      },
+      "gtk-theme": {
+        light: "gtk3-theme-light",
+        dark: "gtk3-theme-dark",
+      },
+    };
+
+    for (const [key, value] of Object.entries(themeSettings)) {
+      const themeName = this._interfaceSettings.get_string(key);
+      this._settings.set_string(isDm ? value.dark : value.light, themeName);
+    }
+
+    if (this._isUserThemeEnabled()) {
+      const themeName = this.getUserThemeSettings().get_string("name");
+      this._settings.set_string(
+        isDm ? "shell-theme-dark" : "shell-theme-light",
+        themeName
+      );
+    }
+
+    this._settings.set_boolean("first-time-install", false);
+  }
+
+  _fetchAllSettings() {
     CURSOR_THEME_LIGHT = this._settings.get_string("cursor-theme-light");
     ICON_THEME_LIGHT = this._settings.get_string("icon-theme-light");
     SHELL_THEME_LIGHT = this._settings.get_string("shell-theme-light");

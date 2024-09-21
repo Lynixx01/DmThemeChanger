@@ -1,5 +1,8 @@
 <schemalist gettext-domain="gnome-shell-extension-dm-theme-changer">
   <schema id="org.gnome.shell.extensions.dmthemechanger" path="/org/gnome/shell/extensions/dmthemechanger/">
+    <key name="first-time-install" type="b">
+      <default>true</default>
+    </key>
     <key name="cursor-theme-light" type="s">
       <default>"Adwaita"</default>
       <summary>shell theme name for light mode</summary>
@@ -31,12 +34,12 @@
       <description>The name of the gtk3 theme for light mode</description>
     </key>
     <key name="shell-theme-dark" type="s">
-      <default>"Adwaita (Default)"</default>
+      <default>"Adwaita"</default>
       <summary>shell theme name for dark mode</summary>
       <description>The name of the shell theme for dark mode</description>
     </key>
     <key name="gtk3-theme-dark" type="s">
-      <default>"Adwaita (Default)"</default>
+      <default>"Adwaita"</default>
       <summary>gtk3 theme name for dark mode</summary>
       <description>The name of the gtk3 theme for dark mode</description>
     </key>
