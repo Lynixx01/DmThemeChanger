@@ -1,8 +1,8 @@
 ## My first project btw :)
 
-Hope you guys like it...
+Sorry for mess code. Hope you guys like it...
 
-# Dark Mode Theme Changer
+# DM Theme Changer
 
 Automatically change theme styles when dark mode is enabled or disabled.
 
@@ -12,11 +12,11 @@ Automatically change theme styles when dark mode is enabled or disabled.
 
 # Installation
 
-Install the `Dark Mode Theme Changer` by running the following commands:
+Install the `DM Theme Changer` by running the following commands:
 
-    wget https://github.com/Lynixx01/DmThemeChanger/releases/download/v1.0/darkmode-theme-changer@lynixx01.github.com.zip
-    gnome-extensions install --force darkmode-theme-changer@lynixx01.github.com.zip
-    rm darkmode-theme-changer@lynixx01.github.com.zip
+    wget https://github.com/Lynixx01/DmThemeChanger/releases/download/v1.0/dm-theme-changer@lynixx01.github.com.zip
+    gnome-extensions install --force dm-theme-changer@lynixx01.github.com.zip
+    rm dm-theme-changer@lynixx01.github.com.zip
 
 # Building from source
 

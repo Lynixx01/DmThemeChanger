@@ -1,8 +1,8 @@
 {
-  "name": "Dark mode theme changer",
+  "name": "DM Theme Changer",
   "description": "Automatically change theme styles when dark mode is enabled or disabled.",
   "version": 1,
-  "uuid": "darkmode-theme-changer@lynixx01.github.com",
+  "uuid": "dm-theme-changer@lynixx01.github.com",
   "shell-version": ["46"],
   "url": "https://github.com/Lynixx01/DmThemeChanger",
   "settings-schema": "org.gnome.shell.extensions.dmthemechanger"

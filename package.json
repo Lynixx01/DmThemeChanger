@@ -1,6 +1,6 @@
 {
-  "name": "dark-mode-theme-changer",
-  "version": "1.0.0",
+  "name": "DM Theme Changer",
+  "version": "1.1.0",
   "description": "Automatically change theme styles when dark mode is enabled or disabled.",
   "repository": "https://github.com/Lynixx01/DmThemeChanger",
   "author": "Lynixx01",
