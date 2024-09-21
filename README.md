@@ -1,6 +1,6 @@
 ## My first project btw :)
 
-Sorry for mess code. Hope you guys like it...
+Sorry for the mess code. Hope you guys like it...
 
 # DM Theme Changer
 
