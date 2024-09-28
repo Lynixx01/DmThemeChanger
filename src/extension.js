@@ -5,6 +5,7 @@ import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
 import { getDirs, getModeThemeDirs } from "./utils.js";
+import { optimizeTransition } from "./others/darkLightSwitch.js";
 
 let CURSOR_THEME_LIGHT;
 let ICON_THEME_LIGHT;
@@ -15,6 +16,8 @@ let CURSOR_THEME_DARK;
 let ICON_THEME_DARK;
 let SHELL_THEME_DARK;
 let GTK3_THEME_DARK;
+
+let OPTIMIZE_DARKLIGHT_SWITCH_TRANSITION;
 
 export default class DmThemeChanger extends Extension {
   enable() {
@@ -42,6 +45,12 @@ export default class DmThemeChanger extends Extension {
     );
 
     this._handleExternalShellThemeChanged();
+
+    // TWEAKS
+    optimizeTransition.init(this._settings);
+    if (this._settings.get_boolean("optimize-darklight-switch-transition")) {
+      optimizeTransition.enable();
+    }
   }
 
   disable() {
@@ -52,15 +61,31 @@ export default class DmThemeChanger extends Extension {
     this._interfaceSettings = null;
 
     this._destroyExternalShellThemeHandler();
+    optimizeTransition.disable();
   }
 
   // Theme
   _changeAllTheme() {
+    optimizeTransition.inProgress = true;
+
     const isDm = this.getDarkMode();
-    this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
-    this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
+
     this._changeGtk3Theme(isDm ? GTK3_THEME_DARK : GTK3_THEME_LIGHT);
     this._changeShellTheme(isDm ? SHELL_THEME_DARK : SHELL_THEME_LIGHT);
+
+    //I add delay here to avoid lag
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+      if (OPTIMIZE_DARKLIGHT_SWITCH_TRANSITION)
+        optimizeTransition.darkModeTransition?.run();
+      return GLib.SOURCE_REMOVE;
+    });
+
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+      this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
+      this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
+      optimizeTransition.inProgress = false;
+      return GLib.SOURCE_REMOVE;
+    });
   }
 
   _changeShellTheme(themeName) {
@@ -78,8 +103,6 @@ export default class DmThemeChanger extends Extension {
       let file = Gio.file_new_for_path(path);
       return file.query_exists(null);
     });
-    log(themeName);
-    log(stylesheet);
     Main.setThemeStylesheet(stylesheet);
     Main.loadTheme();
   }
@@ -212,24 +235,38 @@ export default class DmThemeChanger extends Extension {
 
   // Extension Settings
   _onSettingsChanged(_, key) {
-    this._fetchAllSettings();
-    const isDm = this.getDarkMode();
+    console.log("OPTIMIZATION ENABLED:  " + optimizeTransition.enabled);
+    if (this._writeTimeoutId) GLib.Source.remove(this._writeTimeoutId);
+    this._settings.delay();
 
-    if (key.startsWith("cursor")) {
-      this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
-    }
+    this._writeTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 400, () => {
+      this._settings.apply();
+      this._fetchAllSettings();
+      const isDm = this.getDarkMode();
 
-    if (key.startsWith("icon")) {
-      this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
-    }
+      if (key.startsWith("cursor"))
+        this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
 
-    if (key.startsWith("shell")) {
-      this._changeShellTheme(isDm ? SHELL_THEME_DARK : SHELL_THEME_LIGHT);
-    }
+      if (key.startsWith("icon"))
+        this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
 
-    if (key.startsWith("gtk3")) {
-      this._changeGtk3Theme(isDm ? GTK3_THEME_DARK : GTK3_THEME_LIGHT);
-    }
+      if (key.startsWith("shell"))
+        this._changeShellTheme(isDm ? SHELL_THEME_DARK : SHELL_THEME_LIGHT);
+
+      if (key.startsWith("gtk3"))
+        this._changeGtk3Theme(isDm ? GTK3_THEME_DARK : GTK3_THEME_LIGHT);
+
+      if (key === "optimize-darklight-switch-transition")
+        optimizeTransition.toggle(this._settings.get_boolean(key));
+
+      if (key === "darkmode-toggle-clickdelay")
+        optimizeTransition.setClickDelay(this._settings.get_int(key));
+
+      if (key === "darklight-transition-duration")
+        optimizeTransition.setTransitionDuration(this._settings.get_int(key));
+      this._writeTimeoutId = 0;
+      return GLib.SOURCE_REMOVE;
+    });
   }
 
   _firstTimeInstall() {
@@ -276,10 +313,14 @@ export default class DmThemeChanger extends Extension {
     ICON_THEME_DARK = this._settings.get_string("icon-theme-dark");
     SHELL_THEME_DARK = this._settings.get_string("shell-theme-dark");
     GTK3_THEME_DARK = this._settings.get_string("gtk3-theme-dark");
+
+    OPTIMIZE_DARKLIGHT_SWITCH_TRANSITION = this._settings.get_boolean(
+      "optimize-darklight-switch-transition"
+    );
   }
 
   //Utils
   getDarkMode() {
-    return this._interfaceSettings.get_string("color-scheme") === "prefer-dark";
+    return Main.getStyleVariant() === "dark";
   }
 }

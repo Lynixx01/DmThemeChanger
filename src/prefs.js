@@ -17,12 +17,15 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
     const generalPage = new Adw.PreferencesPage();
     window.add(generalPage);
 
-    collectAllThemes().then((themes) => {
-      this._themes = themes;
+    collectAllThemes()
+      .then((themes) => {
+        this._themes = themes;
 
-      generalPage.add(this._lightModeGroup());
-      generalPage.add(this._darkModeGroup());
-    });
+        generalPage.add(this._lightModeGroup());
+        generalPage.add(this._darkModeGroup());
+        generalPage.add(this._otherGroup());
+      })
+      .catch((e) => console.error("IDKKKKKK" + e));
   }
 
   _lightModeGroup() {
@@ -106,6 +109,42 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
     group.add(gtk3DropDown);
     return group;
   }
+
+  _otherGroup() {
+    const group = new Adw.PreferencesGroup({
+      title: _("Other Settings"),
+      description: _("Additional configuration options"),
+    });
+
+    const optimzeTransition = buildExpanderRow({
+      title: _("Optimize Dark-Light Transition"),
+      subtitle: _(
+        "Optimize animation when toggling between light and dark modes"
+      ),
+      active: this._settings.get_boolean(
+        "optimize-darklight-switch-transition"
+      ),
+      show_switch: true,
+      bind: [this._settings, "optimize-darklight-switch-transition"],
+    });
+
+    const transitionDuration = buildSpinRow({
+      title: _("Transition Duration (ms)"),
+      value: this._settings.get_int("darklight-transition-duration"),
+      bind: [this._settings, "darklight-transition-duration"],
+    });
+
+    const clickDelay = buildSpinRow({
+      title: _("Click Delay (ms)"),
+      value: this._settings.get_int("darkmode-toggle-clickdelay"),
+      bind: [this._settings, "darkmode-toggle-clickdelay"],
+    });
+
+    optimzeTransition.add_row(transitionDuration);
+    optimzeTransition.add_row(clickDelay);
+    group.add(optimzeTransition);
+    return group;
+  }
 }
 
 export const DropdownItems = GObject.registerClass(
@@ -136,7 +175,7 @@ export const DropdownItems = GObject.registerClass(
 
 function buildDropDown(
   opts = {
-    title: "Untitled drop down",
+    title: "Untitled DropDown",
     subtitle: null,
     items: [],
     selected: null,
@@ -157,7 +196,7 @@ function buildDropDown(
   }
   if (selected === null) selected = -1;
 
-  let comboRow = new Adw.ComboRow({
+  const comboRow = new Adw.ComboRow({
     title: opts.title,
     subtitle: opts.subtitle || null,
     model: liststore,
@@ -165,11 +204,69 @@ function buildDropDown(
     selected: selected,
   });
 
-  if (opts.bind) {
-    comboRow.connect("notify::selected", () => {
-      opts.bind[0].set_string(opts.bind[1], comboRow.selectedItem.value);
-    });
-  }
+  if (opts.bind)
+    comboRow.connect("notify::selected", () =>
+      opts.bind[0].set_string(opts.bind[1], comboRow.selectedItem.value)
+    );
 
   return comboRow;
+}
+
+function buildExpanderRow(
+  opts = {
+    title: "Untitled ExpanderRow",
+    subtitle: null,
+    show_switch: false,
+    active: false,
+    bind: null,
+  }
+) {
+  const expanderRow = new Adw.ExpanderRow({
+    title: opts.title,
+    subtitle: opts.subtitle || null,
+    show_enable_switch: opts.show_switch || false,
+    enable_expansion: opts.active,
+  });
+
+  if (opts.bind)
+    expanderRow.connect("notify::enable-expansion", () =>
+      opts.bind[0].set_boolean(opts.bind[1], expanderRow.enable_expansion)
+    );
+
+  return expanderRow;
+}
+
+function buildSpinRow(
+  opts = {
+    title: "Untitled SpinRow",
+    subtitle: null,
+    step: 50,
+    lower: 500,
+    upper: 20000,
+    value: false,
+    bind: null,
+  }
+) {
+  const adjustment = new Gtk.Adjustment({
+    step_increment: opts.step || 50,
+    lower: opts.lower || 500,
+    upper: opts.upper || 20000,
+    value: opts.value,
+  });
+
+  const spinRow = new Adw.SpinRow({
+    title: opts.title,
+    subtitle: opts.subtitle || null,
+    adjustment,
+  });
+
+  if (opts.bind)
+    opts.bind[0].bind(
+      opts.bind[1],
+      adjustment,
+      "value",
+      Gio.SettingsBindFlags.DEFAULT
+    );
+
+  return spinRow;
 }

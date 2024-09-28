@@ -43,5 +43,15 @@
       <summary>gtk3 theme name for dark mode</summary>
       <description>The name of the gtk3 theme for dark mode</description>
     </key>
+    <key name="optimize-darklight-switch-transition" type="b">
+      <default>false</default>
+      <description>Optimize animation when toggling between light and dark modes.</description>
+    </key>
+    <key name="darklight-transition-duration" type="i">
+      <default>1000</default>
+    </key>
+    <key name="darkmode-toggle-clickdelay" type="i">
+      <default>2000</default>
+    </key>
   </schema>
 </schemalist>
