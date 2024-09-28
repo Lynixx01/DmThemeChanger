@@ -3,7 +3,7 @@
   "description": "Automatically change theme styles when dark mode is enabled or disabled.",
   "version": 2,
   "uuid": "dm-theme-changer@lynixx01.github.com",
-  "shell-version": ["46"],
+  "shell-version": ["46", "47"],
   "url": "https://github.com/Lynixx01/DmThemeChanger",
   "settings-schema": "org.gnome.shell.extensions.dmthemechanger"
 }
