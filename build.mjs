@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { builtinModules } from "module";
 import archiver from "archiver";
 
@@ -33,11 +34,26 @@ async function build() {
       OUT_DIR + metadata.uuid + "/schemas/" + file
     );
 
-  // Copy everthing from src to extension package directory
-  const src = fs.readdirSync("./src");
+  // Copy everything from src to extension package directory
+  const srcDir = "./src";
+  const outDir = path.join(OUT_DIR, metadata.uuid);
 
-  for (const file of src)
-    fs.copyFileSync("./src/" + file, OUT_DIR + metadata.uuid + "/" + file);
+  const srcItems = fs.readdirSync(srcDir);
+
+  for (const item of srcItems) {
+    const srcPath = path.join(srcDir, item);
+    const destPath = path.join(outDir, item);
+
+    const stat = fs.statSync(srcPath);
+
+    if (stat.isDirectory()) {
+      // If it's a directory, use fs.cpSync (Node.js v16.7.0 and above)
+      fs.cpSync(srcPath, destPath, { recursive: true });
+    } else {
+      // If it's a file, copy it
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
 
   // Copy metadata
   fs.copyFileSync(
