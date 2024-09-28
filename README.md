@@ -14,7 +14,7 @@ Automatically change theme styles when dark mode is enabled or disabled.
 
 Install the `DM Theme Changer` by running the following commands:
 
-    wget https://github.com/Lynixx01/DmThemeChanger/releases/download/v1.0/dm-theme-changer@lynixx01.github.com.zip
+    wget https://github.com/Lynixx01/DmThemeChanger/releases/latest/download/dm-theme-changer@lynixx01.github.com.zip
     gnome-extensions install --force dm-theme-changer@lynixx01.github.com.zip
     rm dm-theme-changer@lynixx01.github.com.zip
 
