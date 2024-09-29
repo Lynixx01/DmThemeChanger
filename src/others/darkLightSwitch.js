@@ -116,8 +116,6 @@ export const optimizeTransition = new (class OptimizeTransition {
       Main.panel?.statusArea["quickSettings"]?._darkMode
         ?.quickSettingsItems?.[0];
 
-    console.log(this._originalToggleMode);
-
     if (darkModeToggle && typeof darkModeToggle._toggleMode === "function")
       darkModeToggle._toggleMode = this._originalToggleMode;
   }

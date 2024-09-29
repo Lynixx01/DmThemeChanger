@@ -17,15 +17,13 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
     const generalPage = new Adw.PreferencesPage();
     window.add(generalPage);
 
-    collectAllThemes()
-      .then((themes) => {
-        this._themes = themes;
+    collectAllThemes().then((themes) => {
+      this._themes = themes;
 
-        generalPage.add(this._lightModeGroup());
-        generalPage.add(this._darkModeGroup());
-        generalPage.add(this._otherGroup());
-      })
-      .catch((e) => console.error("IDKKKKKK" + e));
+      generalPage.add(this._lightModeGroup());
+      generalPage.add(this._darkModeGroup());
+      generalPage.add(this._otherGroup());
+    });
   }
 
   _lightModeGroup() {
