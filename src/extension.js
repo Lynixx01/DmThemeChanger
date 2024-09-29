@@ -320,6 +320,6 @@ export default class DmThemeChanger extends Extension {
 
   //Utils
   getDarkMode() {
-    return Main.getStyleVariant() === "dark";
+    return this._interfaceSettings.get_string("color-scheme") === "prefer-dark";
   }
 }
