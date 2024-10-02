@@ -56,13 +56,13 @@ export default class DmThemeChanger extends Extension {
   }
 
   disable() {
-    Object.values(this._sourceIds).forEach((id) => {
-      if (id) GLib.source_remove(id);
-    });
-
     this._destroyExternalShellThemeHandler();
 
     this.optimizeTransition.disable();
+
+    Object.values(this._sourceIds).forEach((id) => {
+      if (id) GLib.source_remove(id);
+    });
 
     this._sourceIds = null;
     this._settings = null;
@@ -90,7 +90,7 @@ export default class DmThemeChanger extends Extension {
       this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
       this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
       this.optimizeTransition.inProgress = false;
-      this._sourceIds.transitionDelayTimeout = 0;
+      this._sourceIds.changeIconsDelayTimeout = 0;
       return GLib.SOURCE_REMOVE;
     });
   }
@@ -126,6 +126,8 @@ export default class DmThemeChanger extends Extension {
 
   // Interface Settings
   _onInterfaceSettingsChanged(_, key) {
+    if (!this._sourceIds) return;
+
     if (key === "color-scheme") {
       this._changeAllTheme();
     }
@@ -180,10 +182,12 @@ export default class DmThemeChanger extends Extension {
     if (!extension.uuid.includes("user-theme@")) return;
 
     if (extension.state !== 1) {
+      // State is not 1 means disabled
       this._removeUserThemeListener();
     }
 
     if (extension.state === 1) {
+      // State is 1 means enabled
       this._addUserThemeListener();
     }
   }
@@ -208,7 +212,7 @@ export default class DmThemeChanger extends Extension {
   }
 
   _addUserThemeListener() {
-    if (!this._sourceIds.userThemeListener)
+    if (!this._sourceIds?.userThemeListener)
       this._sourceIds.userThemeListener = this.getUserThemeSettings().connect(
         "changed",
         this._onUserThemeChanged.bind(this)
@@ -216,12 +220,14 @@ export default class DmThemeChanger extends Extension {
   }
 
   _removeUserThemeListener() {
-    if (!this._sourceIds.userThemeListener) return;
+    if (!this._sourceIds?.userThemeListener) return;
     GLib.source_remove(this._sourceIds.userThemeListener);
     this._sourceIds.userThemeListener = 0;
   }
 
   _onUserThemeChanged(_, key) {
+    if (!this._sourceIds) return;
+
     const isDm = this.getDarkMode();
 
     const themeName = this.getUserThemeSettings().get_value(key).deepUnpack();
@@ -236,7 +242,9 @@ export default class DmThemeChanger extends Extension {
 
   // Extension Settings
   _onSettingsChanged(_, key) {
-    if (this._sourceIds.SettingsWriteTimeout)
+    if (!this._sourceIds) return;
+
+    if (this._sourceIds?.SettingsWriteTimeout)
       GLib.Source.remove(this._sourceIds.SettingsWriteTimeout);
     this._settings.delay();
 

@@ -229,7 +229,7 @@ function buildSpinRow(
     title: "Untitled SpinRow",
     subtitle: null,
     step: 50,
-    lower: 500,
+    lower: 100,
     upper: 20000,
     value: false,
     bind: null,
@@ -237,7 +237,7 @@ function buildSpinRow(
 ) {
   const adjustment = new Gtk.Adjustment({
     step_increment: opts.step || 50,
-    lower: opts.lower || 500,
+    lower: opts.lower || 100,
     upper: opts.upper || 20000,
     value: opts.value,
   });
