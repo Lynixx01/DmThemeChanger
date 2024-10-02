@@ -5,7 +5,7 @@ import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
 import { getDirs, getModeThemeDirs } from "./utils.js";
-import { optimizeTransition } from "./others/darkLightSwitch.js";
+import { OptimizeTransition } from "./others/darkLightSwitch.js";
 
 let CURSOR_THEME_LIGHT;
 let ICON_THEME_LIGHT;
@@ -27,46 +27,52 @@ export default class DmThemeChanger extends Extension {
       schema: "org.gnome.desktop.interface",
     });
 
+    // Initilize source Ids handler
+    this._sourceIds = {};
+
+    this._sourceIds.interfaceSettings = this._interfaceSettings.connect(
+      "changed",
+      this._onInterfaceSettingsChanged.bind(this)
+    );
+
+    this._sourceIds.settings = this._settings.connect(
+      "changed",
+      this._onSettingsChanged.bind(this)
+    );
+
+    // TWEAKS
+    this.optimizeTransition = new OptimizeTransition(this._settings);
+
+    if (this._settings.get_boolean("optimize-darklight-switch-transition"))
+      this.optimizeTransition.enable();
+
     const isFirstTimeInstall = this._settings.get_boolean("first-time-install");
     if (isFirstTimeInstall) this._firstTimeInstall();
 
+    // Functions to run when enabled
     this._fetchAllSettings();
     this._changeAllTheme();
-
-    this._connectionIds = [];
-    this._connectionIds.push(
-      this._interfaceSettings.connect(
-        "changed",
-        this._onInterfaceSettingsChanged.bind(this)
-      )
-    );
-    this._connectionIds.push(
-      this._settings.connect("changed", this._onSettingsChanged.bind(this))
-    );
-
     this._handleExternalShellThemeChanged();
-
-    // TWEAKS
-    optimizeTransition.init(this._settings);
-    if (this._settings.get_boolean("optimize-darklight-switch-transition")) {
-      optimizeTransition.enable();
-    }
   }
 
   disable() {
-    this._connectionIds.forEach((id) => GLib.source_remove(id));
-    this._connectionIds = null;
-
-    this._settings = null;
-    this._interfaceSettings = null;
+    Object.values(this._sourceIds).forEach((id) => {
+      if (id) GLib.source_remove(id);
+    });
 
     this._destroyExternalShellThemeHandler();
-    optimizeTransition.disable();
+
+    this.optimizeTransition.disable();
+
+    this._sourceIds = null;
+    this._settings = null;
+    this._interfaceSettings = null;
+    this.optimizeTransition = null;
   }
 
   // Theme
   _changeAllTheme() {
-    optimizeTransition.inProgress = true;
+    this.optimizeTransition.inProgress = true;
 
     const isDm = this.getDarkMode();
 
@@ -74,16 +80,17 @@ export default class DmThemeChanger extends Extension {
     this._changeShellTheme(isDm ? SHELL_THEME_DARK : SHELL_THEME_LIGHT);
 
     //I add delay here to avoid lag
-    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-      if (OPTIMIZE_DARKLIGHT_SWITCH_TRANSITION)
-        optimizeTransition.darkModeTransition?.run();
+    this._sourceIds.transitionDelayTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+      if (OPTIMIZE_DARKLIGHT_SWITCH_TRANSITION) this.optimizeTransition.darkModeTransition?.run();
+      this._sourceIds.transitionDelayTimeout = 0;
       return GLib.SOURCE_REMOVE;
     });
 
-    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+    this._sourceIds.changeIconsDelayTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
       this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
       this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
-      optimizeTransition.inProgress = false;
+      this.optimizeTransition.inProgress = false;
+      this._sourceIds.transitionDelayTimeout = 0;
       return GLib.SOURCE_REMOVE;
     });
   }
@@ -95,9 +102,7 @@ export default class DmThemeChanger extends Extension {
       (dir) => `${dir}/${themeName}/gnome-shell/gnome-shell.css`
     );
 
-    stylesheetPaths.push(
-      ...getModeThemeDirs().map((dir) => `${dir}/${themeName}.css`)
-    );
+    stylesheetPaths.push(...getModeThemeDirs().map((dir) => `${dir}/${themeName}.css`));
 
     stylesheet = stylesheetPaths.find((path) => {
       let file = Gio.file_new_for_path(path);
@@ -145,9 +150,7 @@ export default class DmThemeChanger extends Extension {
     if (themeSettings[key]) {
       const isDm = this.getDarkMode();
       const themeName = this._interfaceSettings.get_value(key).deepUnpack();
-      const settingKey = isDm
-        ? themeSettings[key].dark
-        : themeSettings[key].light;
+      const settingKey = isDm ? themeSettings[key].dark : themeSettings[key].light;
 
       this._settings.set_string(settingKey, themeName);
       this._fetchAllSettings();
@@ -165,7 +168,7 @@ export default class DmThemeChanger extends Extension {
       this._onExtensionStateChanged.bind(this)
     );
 
-    this._connectionIds.push(ids);
+    this._sourceIds.extensionStateChanged = ids;
   }
 
   _destroyExternalShellThemeHandler() {
@@ -186,9 +189,7 @@ export default class DmThemeChanger extends Extension {
   }
 
   _isUserThemeEnabled() {
-    const uuid = Main.extensionManager
-      .getUuids()
-      .find((ext) => ext.includes("user-theme@"));
+    const uuid = Main.extensionManager.getUuids().find((ext) => ext.includes("user-theme@"));
 
     if (!uuid) return false;
 
@@ -207,17 +208,17 @@ export default class DmThemeChanger extends Extension {
   }
 
   _addUserThemeListener() {
-    if (!this._userThemeListenerId)
-      this._userThemeListenerId = this.getUserThemeSettings().connect(
+    if (!this._sourceIds.userThemeListener)
+      this._sourceIds.userThemeListener = this.getUserThemeSettings().connect(
         "changed",
         this._onUserThemeChanged.bind(this)
       );
   }
 
   _removeUserThemeListener() {
-    if (!this._userThemeListenerId) return;
-    GLib.source_remove(this._userThemeListenerId);
-    this._userThemeListenerId = null;
+    if (!this._sourceIds.userThemeListener) return;
+    GLib.source_remove(this._sourceIds.userThemeListener);
+    this._sourceIds.userThemeListener = 0;
   }
 
   _onUserThemeChanged(_, key) {
@@ -235,10 +236,11 @@ export default class DmThemeChanger extends Extension {
 
   // Extension Settings
   _onSettingsChanged(_, key) {
-    if (this._writeTimeoutId) GLib.Source.remove(this._writeTimeoutId);
+    if (this._sourceIds.SettingsWriteTimeout)
+      GLib.Source.remove(this._sourceIds.SettingsWriteTimeout);
     this._settings.delay();
 
-    this._writeTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 400, () => {
+    this._sourceIds.SettingsWriteTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 400, () => {
       this._settings.apply();
       this._fetchAllSettings();
       const isDm = this.getDarkMode();
@@ -246,24 +248,22 @@ export default class DmThemeChanger extends Extension {
       if (key.startsWith("cursor"))
         this._changeCursorTheme(isDm ? CURSOR_THEME_DARK : CURSOR_THEME_LIGHT);
 
-      if (key.startsWith("icon"))
-        this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
+      if (key.startsWith("icon")) this._changeIconTheme(isDm ? ICON_THEME_DARK : ICON_THEME_LIGHT);
 
       if (key.startsWith("shell"))
         this._changeShellTheme(isDm ? SHELL_THEME_DARK : SHELL_THEME_LIGHT);
 
-      if (key.startsWith("gtk3"))
-        this._changeGtk3Theme(isDm ? GTK3_THEME_DARK : GTK3_THEME_LIGHT);
+      if (key.startsWith("gtk3")) this._changeGtk3Theme(isDm ? GTK3_THEME_DARK : GTK3_THEME_LIGHT);
 
       if (key === "optimize-darklight-switch-transition")
-        optimizeTransition.toggle(this._settings.get_boolean(key));
+        this.optimizeTransition.toggle(this._settings.get_boolean(key));
 
       if (key === "darkmode-toggle-clickdelay")
-        optimizeTransition.setClickDelay(this._settings.get_int(key));
+        this.optimizeTransition.setClickDelay(this._settings.get_int(key));
 
       if (key === "darklight-transition-duration")
-        optimizeTransition.setTransitionDuration(this._settings.get_int(key));
-      this._writeTimeoutId = 0;
+        this.optimizeTransition.setTransitionDuration(this._settings.get_int(key));
+      this._sourceIds.SettingsWriteTimeout = 0;
       return GLib.SOURCE_REMOVE;
     });
   }
@@ -293,10 +293,7 @@ export default class DmThemeChanger extends Extension {
 
     if (this._isUserThemeEnabled()) {
       const themeName = this.getUserThemeSettings().get_string("name");
-      this._settings.set_string(
-        isDm ? "shell-theme-dark" : "shell-theme-light",
-        themeName
-      );
+      this._settings.set_string(isDm ? "shell-theme-dark" : "shell-theme-light", themeName);
     }
 
     this._settings.set_boolean("first-time-install", false);

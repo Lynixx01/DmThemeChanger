@@ -33,11 +33,7 @@ const DarkModeTransition = GObject.registerClass(
         height: global.screen_height,
       });
       const [, , , scale] = global.stage.get_capture_final_size(rect);
-      this.content = global.stage.paint_to_content(
-        rect,
-        scale,
-        Clutter.PaintFlag.NO_CURSORS
-      );
+      this.content = global.stage.paint_to_content(rect, scale, Clutter.PaintFlag.NO_CURSORS);
 
       this.opacity = 255;
       this.show();
@@ -61,13 +57,11 @@ const DarkModeTransition = GObject.registerClass(
   }
 );
 
-export const optimizeTransition = new (class OptimizeTransition {
-  init(settings) {
+export class OptimizeTransition {
+  constructor(settings) {
     this._settings = settings;
 
-    this.setTransitionDuration(
-      this._settings.get_int("darklight-transition-duration")
-    );
+    this.setTransitionDuration(this._settings.get_int("darklight-transition-duration"));
     this.setClickDelay(this._settings.get_int("darkmode-toggle-clickdelay"));
   }
 
@@ -87,15 +81,13 @@ export const optimizeTransition = new (class OptimizeTransition {
       })
     );
 
-    const darkModeToggle =
-      Main.panel?.statusArea["quickSettings"]?._darkMode
-        ?.quickSettingsItems?.[0];
+    this.darkModeToggle =
+      Main.panel?.statusArea["quickSettings"]?._darkMode?.quickSettingsItems?.[0];
 
-    if (darkModeToggle && typeof darkModeToggle._toggleMode === "function") {
-      if (!this._originalToggleMode)
-        this._originalToggleMode = darkModeToggle._toggleMode;
+    if (this.darkModeToggle && typeof this.darkModeToggle._toggleMode === "function") {
+      if (!this._originalToggleMode) this._originalToggleMode = this.darkModeToggle._toggleMode;
 
-      darkModeToggle._toggleMode = this._patchedToggleMode.bind(darkModeToggle);
+      this._patchDarkModeToggle();
     }
   }
 
@@ -112,12 +104,13 @@ export const optimizeTransition = new (class OptimizeTransition {
       this.darkModeTransition = null;
     }
 
-    const darkModeToggle =
-      Main.panel?.statusArea["quickSettings"]?._darkMode
-        ?.quickSettingsItems?.[0];
+    if (this.darkModeToggle && typeof this.darkModeToggle._toggleMode === "function")
+      this.darkModeToggle._toggleMode = this._originalToggleMode;
 
-    if (darkModeToggle && typeof darkModeToggle._toggleMode === "function")
-      darkModeToggle._toggleMode = this._originalToggleMode;
+    if (this._toggleTimeoutId) {
+      GLib.source_remove(this._toggleTimeoutId);
+      this._toggleTimeoutId = 0;
+    }
   }
 
   toggle(boolean) {
@@ -133,28 +126,25 @@ export const optimizeTransition = new (class OptimizeTransition {
     TRANSITION_DURATION = ms;
   }
 
-  _patchedToggleMode() {
+  _patchDarkModeToggle() {
     // Main.layoutManager.screenTransition.run();
 
-    // Handle when user click dark mode toggle multiple time
-    if (this.secondClick || optimizeTransition.inProgress) return;
+    let that = this;
 
-    this.secondClick = true;
+    this.darkModeToggle._toggleMode = function () {
+      // Handle when user click dark mode toggle multiple time
+      if (this.secondClick || that.inProgress) return;
 
-    this._toggleTimeoutId = GLib.timeout_add(
-      GLib.PRIORITY_DEFAULT,
-      CLICK_DELAY,
-      () => {
-        this._toggleTimeoutId = 0;
+      this.secondClick = true;
+
+      that._toggleTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, CLICK_DELAY, () => {
         this.secondClick = false;
+        this._toggleTimeoutId = 0;
         return GLib.SOURCE_REMOVE;
-      }
-    );
+      });
 
-    optimizeTransition.darkModeTransition?.cloneSceenAndDisplay();
-    this._settings.set_string(
-      "color-scheme",
-      this.checked ? "default" : "prefer-dark"
-    );
+      that.darkModeTransition?.cloneSceenAndDisplay();
+      this._settings.set_string("color-scheme", this.checked ? "default" : "prefer-dark");
+    };
   }
-})();
+}
