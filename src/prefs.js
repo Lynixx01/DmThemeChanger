@@ -116,12 +116,8 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
 
     const optimzeTransition = buildExpanderRow({
       title: _("Optimize Dark-Light Transition"),
-      subtitle: _(
-        "Optimize animation when toggling between light and dark modes"
-      ),
-      active: this._settings.get_boolean(
-        "optimize-darklight-switch-transition"
-      ),
+      subtitle: _("Optimize animation when toggling between light and dark modes"),
+      active: this._settings.get_boolean("optimize-darklight-switch-transition"),
       show_switch: true,
       bind: [this._settings, "optimize-darklight-switch-transition"],
     });
@@ -148,13 +144,7 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
 export const DropdownItems = GObject.registerClass(
   {
     Properties: {
-      name: GObject.ParamSpec.string(
-        "name",
-        "name",
-        "name",
-        GObject.ParamFlags.READWRITE,
-        null
-      ),
+      name: GObject.ParamSpec.string("name", "name", "name", GObject.ParamFlags.READWRITE, null),
       value: GObject.ParamSpec.string(
         "value",
         "value",
@@ -259,12 +249,7 @@ function buildSpinRow(
   });
 
   if (opts.bind)
-    opts.bind[0].bind(
-      opts.bind[1],
-      adjustment,
-      "value",
-      Gio.SettingsBindFlags.DEFAULT
-    );
+    opts.bind[0].bind(opts.bind[1], adjustment, "value", Gio.SettingsBindFlags.DEFAULT);
 
   return spinRow;
 }

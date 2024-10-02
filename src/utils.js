@@ -15,9 +15,7 @@ export function getDirs(type) {
 }
 
 export function getModeThemeDirs() {
-  return GLib.get_system_data_dirs().map((dir) =>
-    fn(dir, "gnome-shell", "theme")
-  );
+  return GLib.get_system_data_dirs().map((dir) => fn(dir, "gnome-shell", "theme"));
 }
 
 function isPathExist(path) {
@@ -71,16 +69,10 @@ export async function collectAllThemes() {
     const value = themepath.split("/").pop();
     const name = value.charAt(0).toUpperCase() + value.slice(1);
 
-    if (
-      isPathExist(fn(themepath, "cursors")) &&
-      !themes.cursor.some((e) => e.value === value)
-    )
+    if (isPathExist(fn(themepath, "cursors")) && !themes.cursor.some((e) => e.value === value))
       themes.cursor.push({ name, value });
 
-    if (
-      isPathExist(fn(themepath, "index.theme")) &&
-      !themes.icons.some((e) => e.value === value)
-    )
+    if (isPathExist(fn(themepath, "index.theme")) && !themes.icons.some((e) => e.value === value))
       themes.icons.push({ name, value });
   }
 
@@ -99,9 +91,7 @@ export async function collectAllThemes() {
   ["gtk3", "shell", "cursor", "icons"].forEach((type) => {
     themes[type].sort((a, b) => a.name.localeCompare(b.value));
 
-    const isAdwaitaAlreadyExist = themes[type].find(
-      (e) => e.name === "Adwaita"
-    );
+    const isAdwaitaAlreadyExist = themes[type].find((e) => e.name === "Adwaita");
 
     if (isAdwaitaAlreadyExist) isAdwaitaAlreadyExist.name += " (Default)";
     else themes[type].unshift(DEFAULT);

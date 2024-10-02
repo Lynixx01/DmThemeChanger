@@ -23,16 +23,11 @@ async function build() {
 
   // Check if schemas succesfully compiled
   if (!gcompiled)
-    return console.error(
-      "Schemas.compiled not found. Is the schemas successfully compiled?"
-    );
+    return console.error("Schemas.compiled not found. Is the schemas successfully compiled?");
 
   // Copy schemas to extension package directory
   for (const file of schemas)
-    fs.copyFileSync(
-      SCHEMAS_DIR_PATH + file,
-      OUT_DIR + metadata.uuid + "/schemas/" + file
-    );
+    fs.copyFileSync(SCHEMAS_DIR_PATH + file, OUT_DIR + metadata.uuid + "/schemas/" + file);
 
   // Copy everything from src to extension package directory
   const srcDir = "./src";
@@ -56,10 +51,7 @@ async function build() {
   }
 
   // Copy metadata
-  fs.copyFileSync(
-    JSON_METADATA_PATH,
-    OUT_DIR + metadata.uuid + "/metadata.json"
-  );
+  fs.copyFileSync(JSON_METADATA_PATH, OUT_DIR + metadata.uuid + "/metadata.json");
 
   // Copy License
   fs.copyFileSync(LICENSE_PATH, OUT_DIR + metadata.uuid + "/LICENSE");
