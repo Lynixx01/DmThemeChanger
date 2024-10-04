@@ -1,7 +1,7 @@
 {
   "name": "DM Theme Changer",
   "description": "Automatically change theme styles when dark mode is enabled or disabled.",
-  "version": 3,
+  "version": 4,
   "uuid": "dm-theme-changer@lynixx01.github.com",
   "shell-version": ["46", "47"],
   "url": "https://github.com/Lynixx01/DmThemeChanger",
