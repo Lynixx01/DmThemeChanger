@@ -24,6 +24,11 @@ export default class DmThemeChangerPrefs extends ExtensionPreferences {
       generalPage.add(this._darkModeGroup());
       generalPage.add(this._otherGroup());
     });
+
+    window.connect("close-request", () => {
+      this._settings = null;
+      this._themes = null;
+    });
   }
 
   _lightModeGroup() {
