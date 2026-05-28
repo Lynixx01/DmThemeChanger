@@ -1,9 +1,10 @@
 {
-  "name": "DM Theme Changer",
+  "name": "DM Theme Changer Reborn",
   "description": "Automatically change theme styles when dark mode is enabled or disabled.",
-  "version": 4,
-  "uuid": "dm-theme-changer@lynixx01.github.com",
-  "shell-version": ["46", "47"],
-  "url": "https://github.com/Lynixx01/DmThemeChanger",
-  "settings-schema": "org.gnome.shell.extensions.dmthemechanger"
+  "version": 6,
+  "version-name": "1.0.0",
+  "uuid": "dm-theme-changer-reborn@phenrique-coder.github.com",
+  "shell-version": ["46", "47", "48", "49", "50"],
+  "url": "https://github.com/phenrique-coder/DmThemeChanger",
+  "settings-schema": "org.gnome.shell.extensions.dmthemechangerreborn"
 }

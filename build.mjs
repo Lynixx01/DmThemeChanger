@@ -26,8 +26,11 @@ async function build() {
     return console.error("Schemas.compiled not found. Is the schemas successfully compiled?");
 
   // Copy schemas to extension package directory
-  for (const file of schemas)
+  for (const file of schemas) {
+    if (file.endsWith(".compiled"))
+      continue;
     fs.copyFileSync(SCHEMAS_DIR_PATH + file, OUT_DIR + metadata.uuid + "/schemas/" + file);
+  }
 
   // Copy everything from src to extension package directory
   const srcDir = "./src";

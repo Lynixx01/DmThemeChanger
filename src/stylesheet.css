@@ -1,0 +1,18 @@
+/* Custom stylesheet for DM Theme Changer Reborn */
+
+.dm-theme-changer-menu-item:hover,
+.dm-theme-changer-menu-item:focus,
+.dm-theme-changer-menu-item:active,
+.dm-theme-changer-menu-item.selected {
+    background-color: -selected-bg-color !important;
+    color: -selected-fg-color !important;
+    border-radius: 6px;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.dm-theme-changer-menu-item:hover StLabel,
+.dm-theme-changer-menu-item:focus StLabel,
+.dm-theme-changer-menu-item:active StLabel,
+.dm-theme-changer-menu-item.selected StLabel {
+    color: -selected-fg-color !important;
+}

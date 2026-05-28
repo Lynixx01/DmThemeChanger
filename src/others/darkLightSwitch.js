@@ -29,8 +29,8 @@ const DarkModeTransition = GObject.registerClass(
         x: 0,
 
         y: 0,
-        width: global.screen_width,
-        height: global.screen_height,
+        width: global.stage.width,
+        height: global.stage.height,
       });
       const [, , , scale] = global.stage.get_capture_final_size(rect);
       this.content = global.stage.paint_to_content(rect, scale, Clutter.PaintFlag.NO_CURSORS);

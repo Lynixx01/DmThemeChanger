@@ -1,5 +1,5 @@
 <schemalist gettext-domain="gnome-shell-extension-dm-theme-changer">
-  <schema id="org.gnome.shell.extensions.dmthemechanger" path="/org/gnome/shell/extensions/dmthemechanger/">
+  <schema id="org.gnome.shell.extensions.dmthemechangerreborn" path="/org/gnome/shell/extensions/dmthemechangerreborn/">
     <key name="first-time-install" type="b">
       <default>true</default>
     </key>
@@ -52,6 +52,51 @@
     </key>
     <key name="darkmode-toggle-clickdelay" type="i">
       <default>2000</default>
+    </key>
+    <key name="run-custom-commands" type="b">
+      <default>false</default>
+      <summary>Whether to run custom commands on theme switch</summary>
+      <description>If true, run custom shell commands when entering light or dark mode.</description>
+    </key>
+    <key name="custom-command-light" type="s">
+      <default>""</default>
+      <summary>Custom command to run in light mode</summary>
+      <description>The shell command to execute when switching to light mode.</description>
+    </key>
+    <key name="custom-command-dark" type="s">
+      <default>""</default>
+      <summary>Custom command to run in dark mode</summary>
+      <description>The shell command to execute when switching to dark mode.</description>
+    </key>
+    <key name="sync-lockscreen-wallpaper" type="b">
+      <default>false</default>
+      <summary>Sync lockscreen wallpaper</summary>
+      <description>Whether to change the lockscreen wallpaper when the theme switches.</description>
+    </key>
+    <key name="lockscreen-use-desktop-wallpaper" type="b">
+      <default>false</default>
+      <summary>Use desktop wallpaper for lockscreen</summary>
+      <description>Whether to use the same wallpaper selected for the desktop on the lockscreen.</description>
+    </key>
+    <key name="lockscreen-wallpaper-light" type="s">
+      <default>""</default>
+      <summary>Lockscreen wallpaper in light mode</summary>
+      <description>File path or URI for the lockscreen wallpaper in light mode.</description>
+    </key>
+    <key name="lockscreen-wallpaper-dark" type="s">
+      <default>""</default>
+      <summary>Lockscreen wallpaper in dark mode</summary>
+      <description>File path or URI for the lockscreen wallpaper in dark mode.</description>
+    </key>
+    <key name="show-indicator" type="b">
+      <default>true</default>
+      <summary>Show status indicator</summary>
+      <description>Show a status indicator icon in the system panel.</description>
+    </key>
+    <key name="toggle-theme-shortcut" type="as">
+      <default>['&lt;Super&gt;y']</default>
+      <summary>Shortcut to toggle dark mode</summary>
+      <description>Keyboard shortcut to toggle between light and dark modes.</description>
     </key>
   </schema>
 </schemalist>
